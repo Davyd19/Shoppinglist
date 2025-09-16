@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Shopping List</string>
+    <string name="search_items">Search items</string>
+</resources>
