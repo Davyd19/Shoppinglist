@@ -11,31 +11,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = RedDark,
-    onPrimary = RedOn,
-    primaryContainer = RedDarkPrimaryContainer,
-    onPrimaryContainer = RedDarkOnPrimaryContainer,
-    secondary = RedSecondary,
-    secondaryContainer = RedDarkSecondaryContainer,
-    onSecondaryContainer = RedDarkOnSecondaryContainer,
-    background = RedDarkBackground,
-    onBackground = RedDarkOnBackground,
-    surface = RedSurfaceDark,
-    onSurface = RedOnSurfaceDark
+    primary = GreenToscaDark,
+    onPrimary = GreenToscaOn,
+    primaryContainer = GreenToscaDarkPrimaryContainer,
+    onPrimaryContainer = GreenToscaDarkOnPrimaryContainer,
+    secondary = GreenToscaSecondary,
+    secondaryContainer = GreenToscaDarkSecondaryContainer,
+    onSecondaryContainer = GreenToscaDarkOnSecondaryContainer,
+    background = GreenToscaDarkBackground,
+    onBackground = GreenToscaDarkOnBackground,
+    surface = GreenToscaDarkSurface,
+    onSurface = GreenToscaDarkOnSurface
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = RedLight,
-    onPrimary = RedOn,
-    primaryContainer = RedPrimaryContainer,
-    onPrimaryContainer = RedOnPrimaryContainer,
-    secondary = RedSecondary,
-    secondaryContainer = RedSecondaryContainer,
-    onSecondaryContainer = RedOnSecondaryContainer,
-    background = RedBackground,
-    onBackground = RedOnBackground,
-    surface = RedSurface,
-    onSurface = RedOnSurface
+    primary = GreenToscaPrimary,
+    onPrimary = GreenToscaOn,
+    primaryContainer = GreenToscaPrimaryContainer,
+    onPrimaryContainer = GreenToscaOnPrimaryContainer,
+    secondary = GreenToscaSecondary,
+    secondaryContainer = GreenToscaSecondaryContainer,
+    onSecondaryContainer = GreenToscaOnSecondaryContainer,
+    background = GreenToscaBackground,
+    onBackground = GreenToscaOnBackground,
+    surface = GreenToscaSurface,
+    onSurface = GreenToscaOnSurface
 )
 
 @Composable

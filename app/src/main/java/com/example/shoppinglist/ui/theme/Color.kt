@@ -2,30 +2,28 @@ package com.example.shoppinglist.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// Warna untuk light mode (Hijau Tosca)
+val GreenToscaPrimary = Color(0xFF009688) // Warna utama
+val GreenToscaDark = Color(0xFF00796B)    // Varian lebih gelap dari warna utama
+val GreenToscaOn = Color(0xFFFFFFFF)       // Warna teks di atas warna utama
+val GreenToscaBackground = Color(0xFFF0FDFB) // Warna latar belakang aplikasi
+val GreenToscaOnBackground = Color(0xFF1A1C1C) // Warna teks di atas background
+val GreenToscaSurface = Color(0xFFF0FDFB)      // Warna untuk card, sheet, dll.
+val GreenToscaOnSurface = Color(0xFF1A1C1C)    // Warna teks di atas surface
+
+val GreenToscaSecondary = Color(0xFF00BCD4)  // Warna aksen/sekunder
+val GreenToscaPrimaryContainer = Color(0xFFB2DFDB) // Warna kontainer dari warna utama (lebih terang)
+val GreenToscaOnPrimaryContainer = Color(0xFF003732) // Warna teks di atas primary container
+val GreenToscaSecondaryContainer = Color(0xFFA6EEFF) // Warna kontainer dari warna sekunder
+val GreenToscaOnSecondaryContainer = Color(0xFF003540) // Warna teks di atas secondary container
 
 
-val RedLight = Color(0xFFF44336)
-val RedDark = Color(0xFFD32F2F)
-val RedOn = Color(0xFFFFFFFF)
-val RedBackground = Color(0xFFF5F5F5)
-val RedOnBackground = Color(0xFF1C1B1F)
-val RedSurface = Color(0xFFFFFFFF)
-val RedOnSurface = Color(0xFF1C1B1F)
-
-val RedSurfaceDark = Color(0xFF2B2930)
-val RedOnSurfaceDark = Color(0xFFE6E1E5)
-
-val RedSecondary = Color(0xFFFF5722)
-val RedSecondaryContainer = Color(0xFFFFE0DB)
-val RedOnSecondaryContainer = Color(0xFF8C2318)
-
-val RedPrimaryContainer = Color(0xFFFFDAD6)
-val RedOnPrimaryContainer = Color(0xFF410E0B)
-
-// Warna untuk dark mode
-val RedDarkBackground = Color(0xFF121212)
-val RedDarkOnBackground = Color(0xFFE6E1E5)
-val RedDarkPrimaryContainer = Color(0xFF93000A)
-val RedDarkOnPrimaryContainer = Color(0xFFFFDAD6)
-val RedDarkSecondaryContainer = Color(0xFF8C2318)
-val RedDarkOnSecondaryContainer = Color(0xFFFFDAD6)
+// Warna untuk dark mode (Hijau Tosca)
+val GreenToscaDarkBackground = Color(0xFF121212)   // Warna background untuk dark mode
+val GreenToscaDarkOnBackground = Color(0xFFE2E3E2) // Warna teks untuk dark mode
+val GreenToscaDarkSurface = Color(0xFF1A2C2B)        // Warna surface untuk dark mode (sedikit hint tosca)
+val GreenToscaDarkOnSurface = Color(0xFFE2E3E2)      // Warna teks di atas surface dark
+val GreenToscaDarkPrimaryContainer = Color(0xFF004F48) // Warna kontainer utama untuk dark mode
+val GreenToscaDarkOnPrimaryContainer = Color(0xFFB2DFDB) // Warna teks di atas kontainer utama dark
+val GreenToscaDarkSecondaryContainer = Color(0xFF004D5A) // Warna kontainer sekunder untuk dark mode
+val GreenToscaDarkOnSecondaryContainer = Color(0xFFA6EEFF) // Warna teks di atas kontainer sekunder dark
