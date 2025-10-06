@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">Shopping List</string>
     <string name="search_items">Search items</string>
+    <string name="mobile_programming">Mobile Programming</string>
+    <string name="hobi">Futsal, Membaca</string>
+    <string name="TTL">Bandung, 19 Juni 2005</string>
+    <string name="NIM">2311522014</string>
+    <string name="Nama">Davyd Yehuda</string>
+    <string name="ini_halaman_pengaturan">Ini halaman Pengaturan</string>
+    <string name="foto_profil">Foto Profil</string>
 </resources>
