@@ -1,190 +1,189 @@
 package com.example.shoppinglist.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.shoppinglist.data.ShoppingItem
+import com.example.shoppinglist.formatRupiah
 import com.example.shoppinglist.ui.theme.ShoppingListTheme
 import kotlinx.coroutines.delay
 
+// Menggunakan anotasi Material 3 yang benar
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShoppingList(items: List<String>) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(items, key = { it }) { item ->
-            AnimatedShoppingListItem(item = item)
+fun ShoppingList(items: List<ShoppingItem>, onRemoveItem: (ShoppingItem) -> Unit) {
+    val totalCost = items.sumOf { it.price * it.quantity }
+
+    if (items.isEmpty()) {
+        EmptyState()
+    } else {
+        Column {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(items, key = { it.id }) { item ->
+                    // Menggunakan 'rememberSwipeToDismissBoxState' dari Material 3
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = {
+                            // Cek apakah item digeser penuh ke salah satu sisi
+                            if (it == SwipeToDismissBoxValue.EndToStart || it == SwipeToDismissBoxValue.StartToEnd) {
+                                onRemoveItem(item)
+                                true // Konfirmasi penghapusan
+                            } else {
+                                false // Jangan hapus jika tidak digeser penuh
+                            }
+                        }
+                    )
+
+                    var isVisible by remember { mutableStateOf(false) }
+                    LaunchedEffect(item.id) {
+                        delay(50) // Delay kecil untuk animasi
+                        isVisible = true
+                    }
+
+                    AnimatedVisibility(
+                        visible = isVisible,
+                        enter = fadeIn(animationSpec = tween(300)) + expandVertically(animationSpec = tween(300)),
+                        exit = fadeOut(animationSpec = tween(300)) + shrinkVertically(animationSpec = tween(300))
+                    ) {
+                        // Menggunakan 'SwipeToDismissBox' dari Material 3
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = { DismissBackground(dismissState = dismissState) },
+                            content = { ShoppingListItem(item = item) },
+                            // Hanya izinkan geser dari kanan ke kiri
+                            enableDismissFromStartToEnd = false
+                        )
+                    }
+                }
+            }
+            TotalCostCard(totalCost = totalCost)
         }
     }
 }
 
 @Composable
-fun AnimatedShoppingListItem(item: String) {
-    var isVisible by remember { mutableStateOf(false) }
-
-    // Trigger animasi saat item pertama kali muncul
-    LaunchedEffect(item) {
-        delay(100)
-        isVisible = true
-    }
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(animationSpec = tween(600)) +
-                expandVertically(animationSpec = tween(600))
+fun ShoppingListItem(item: ShoppingItem) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        ShoppingListItem(item)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = item.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${item.quantity} x ${formatRupiah(item.price)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = formatRupiah(item.price * item.quantity),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DismissBackground(dismissState: SwipeToDismissBoxState) {
+    val color by animateColorAsState(
+        // Ganti warna jika targetnya bukan 'Settled' (posisi default)
+        targetValue = if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) MaterialTheme.colorScheme.errorContainer else Color.Transparent,
+        label = "Dismiss Background Color"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color, shape = RoundedCornerShape(16.dp))
+            .padding(horizontal = 20.dp),
+        // Selalu letakkan ikon di ujung kanan
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            Icons.Default.Delete,
+            contentDescription = "Hapus",
+            tint = MaterialTheme.colorScheme.onErrorContainer
+        )
     }
 }
 
 @Composable
-fun ShoppingListItem(item: String) {
-    var isSelected by remember { mutableStateOf(false) }
-    var isPressed by remember { mutableStateOf(false) }
-
-    // Animasi warna
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else if (isPressed) {
-            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        animationSpec = tween(300),
-        label = "backgroundColor"
-    )
-
-    val contentColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        },
-        animationSpec = tween(300),
-        label = "contentColor"
-    )
-
-    // Animasi elevasi
-    val elevation by animateDpAsState(
-        targetValue = if (isPressed) 12.dp else if (isSelected) 8.dp else 4.dp,
-        animationSpec = tween(200),
-        label = "elevation"
-    )
-
+fun TotalCostCard(totalCost: Double) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = elevation,
-                shape = RoundedCornerShape(16.dp),
-                clip = false
-            )
-            .clickable {
-                isSelected = !isSelected
-            },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor,
-            contentColor = contentColor
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-            } else {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-            }
-        )
+            .padding(top = 8.dp),
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        elevation = CardDefaults.cardElevation(8.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(20.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .shadow(2.dp, shape = RoundedCornerShape(50))
-                    .background(
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(50)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = item.firstOrNull()?.uppercase() ?: "?",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-
-            // Nama item
-            Text(
-                text = item,
-                style = MaterialTheme.typography.titleMedium,
-                color = contentColor,
-                modifier = Modifier.weight(1f)
-            )
-
-            // Icon status
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                }
-            ) {
-                Icon(
-                    imageVector = if (isSelected) Icons.Default.Check else Icons.Default.Add,
-                    contentDescription = if (isSelected) "Selected" else "Add to cart",
-                    tint = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    },
-                    modifier = Modifier.padding(6.dp)
-                )
-            }
+            Text(text = "Total Belanja", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = formatRupiah(totalCost), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
+    }
+}
+
+@Composable
+fun EmptyState() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.ShoppingCart,
+            contentDescription = null,
+            modifier = Modifier.size(100.dp),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Daftar belanja Anda kosong",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+        )
+        Text(
+            text = "Mulai tambahkan item baru di atas.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
     }
 }
 
@@ -192,11 +191,11 @@ fun ShoppingListItem(item: String) {
 @Composable
 fun ShoppingListPreview() {
     ShoppingListTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            ShoppingList(items = listOf("Susu Segar", "Roti Tawar", "Telur Ayam", "Apel Fuji", "Daging Sapi"))
-        }
+        val previewItems = listOf(
+            ShoppingItem(name = "Susu UHT", quantity = 2, price = 15000.0),
+            ShoppingItem(name = "Roti Tawar", quantity = 1, price = 12000.0)
+        )
+        ShoppingList(items = previewItems, onRemoveItem = {})
     }
 }
+

@@ -6,46 +6,41 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.example.shoppinglist.components.ItemInput
-import com.example.shoppinglist.components.SearchInput
-import com.example.shoppinglist.components.ShoppingList
-import com.example.shoppinglist.components.Title
-import com.example.shoppinglist.ui.theme.ShoppingListTheme
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.Image
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.*
+import com.example.shoppinglist.components.SearchInput
+import com.example.shoppinglist.components.ShoppingList
+import com.example.shoppinglist.data.ShoppingItem
+import com.example.shoppinglist.ui.theme.ShoppingListTheme
+import java.text.NumberFormat
+import java.util.*
 
-// Sealed class untuk mendefinisikan rute, judul, dan ikon setiap layar
-sealed class Screen(val route: String, val title: String, val icon: @Composable () -> Unit) {
-    object Home : Screen("home", "Shopping List", { Icon(Icons.Default.Home, contentDescription = null) })
-    object Profile : Screen("profile", "Profile", { Icon(Icons.Default.Person, contentDescription = null) })
-    object Settings : Screen("settings", "Settings", { Icon(Icons.Default.Settings, contentDescription = null) })
+sealed class Screen(val route: String, val title: String, val icon: (@Composable () -> Unit)? = null) {
+    object Home : Screen("home", "Catatan Belanja", { Icon(Icons.Default.Home, contentDescription = null) })
+    object Profile : Screen("profile", "Profil", { Icon(Icons.Default.Person, contentDescription = null) })
 }
 
 class MainActivity : ComponentActivity() {
@@ -53,12 +48,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ShoppingListTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainApp()
-                }
+                MainApp()
             }
         }
     }
@@ -68,125 +58,153 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    // Daftar layar untuk Bottom Navigation
     val bottomNavScreens = listOf(Screen.Home, Screen.Profile)
-    // Daftar layar untuk Drawer
-    val drawerScreens = listOf(Screen.Settings)
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                Text("App Menu", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(16.dp))
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-                // Item untuk Halaman Settings di dalam Drawer
-                drawerScreens.forEach { screen ->
-                    NavigationDrawerItem(
-                        icon = screen.icon,
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    val title = when (currentDestination?.route) {
+                        Screen.Home.route -> Screen.Home.title
+                        Screen.Profile.route -> Screen.Profile.title
+                        else -> "Catatan Belanja"
+                    }
+                    Text(title, fontWeight = FontWeight.SemiBold)
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp
+            ) {
+                bottomNavScreens.forEach { screen ->
+                    NavigationBarItem(
+                        icon = screen.icon!!,
                         label = { Text(screen.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(screen.route) { launchSingleTop = true }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
             }
         }
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        // Mencari judul berdasarkan rute yang aktif
-                        val title = when (currentDestination?.route) {
-                            Screen.Home.route -> Screen.Home.title
-                            Screen.Profile.route -> Screen.Profile.title
-                            Screen.Settings.route -> Screen.Settings.title
-                            else -> "Shopping List"
-                        }
-                        Text(title)
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                    }
-                )
-            },
-            bottomBar = {
-                NavigationBar {
-                    bottomNavScreens.forEach { screen ->
-                        NavigationBarItem(
-                            icon = screen.icon,
-                            label = { Text(screen.title) },
-                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-        ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = Screen.Home.route,
-                modifier = Modifier.padding(innerPadding),
-                // Menambahkan animasi transisi fadeIn/fadeOut sesuai instruksi
-                enterTransition = { fadeIn(animationSpec = tween(300)) },
-                exitTransition = { fadeOut(animationSpec = tween(300)) }
-            ) {
-                composable(Screen.Home.route) { ShoppingListScreen() }
-                composable(Screen.Profile.route) { ProfileScreen() }
-                composable(Screen.Settings.route) { SettingsScreen() }
-            }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
+            composable(Screen.Home.route) { ShoppingListScreen() }
+            composable(Screen.Profile.route) { ProfileScreen() }
         }
     }
 }
 
 @Composable
 fun ShoppingListScreen() {
-    var newItemText by rememberSaveable { mutableStateOf("") }
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    val shoppingItems = remember { mutableStateListOf<String>() }
+    val shoppingItems = remember { mutableStateListOf<ShoppingItem>() }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     val filteredItems by remember(searchQuery, shoppingItems) {
         derivedStateOf {
             if (searchQuery.isBlank()) shoppingItems
-            else shoppingItems.filter { it.contains(searchQuery, ignoreCase = true) }
+            else shoppingItems.filter { it.name.contains(searchQuery, ignoreCase = true) }
         }
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-        Title()
-        ItemInput(
-            text = newItemText,
-            onTextChange = { newItemText = it },
-            onAddItem = {
-                if (newItemText.isNotBlank()) {
-                    shoppingItems.add(0, newItemText)
-                    newItemText = ""
-                }
+    if (showAddDialog) {
+        AddItemDialog(
+            onDismiss = { showAddDialog = false },
+            onAddItem = { newItem ->
+                shoppingItems.add(0, newItem)
+                showAddDialog = false
             }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         SearchInput(query = searchQuery, onQueryChange = { searchQuery = it })
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(
+            onClick = { showAddDialog = true },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.tambah_item))
+        }
         Spacer(modifier = Modifier.height(16.dp))
-        ShoppingList(items = filteredItems)
+        ShoppingList(
+            items = filteredItems,
+            onRemoveItem = { item ->
+                shoppingItems.remove(item)
+            }
+        )
+    }
+}
+
+@Composable
+fun AddItemDialog(onDismiss: () -> Unit, onAddItem: (ShoppingItem) -> Unit) {
+    var name by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = stringResource(R.string.tambah_item_baru), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 16.dp))
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.nama_barang)) }, singleLine = true)
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = quantity, onValueChange = { if (it.all { char -> char.isDigit() }) quantity = it }, label = { Text("Jumlah (Qty)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true)
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = price, onValueChange = { if (it.all { char -> char.isDigit() }) price = it }, label = { Text("Harga Satuan (Rp)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true)
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.batal)) }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = {
+                        val qtyInt = quantity.toIntOrNull() ?: 0
+                        val priceDouble = price.toDoubleOrNull() ?: 0.0
+                        if (name.isNotBlank() && qtyInt > 0) {
+                            onAddItem(ShoppingItem(name = name, quantity = qtyInt, price = priceDouble))
+                        }
+                    }) {
+                        Text(stringResource(R.string.tambah))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -197,73 +215,79 @@ fun ProfileScreen() {
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.Top
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // Header Profil
         Image(
             painter = painterResource(id = R.drawable.foto_pp),
             contentDescription = stringResource(R.string.foto_profil),
             modifier = Modifier
-                .size(150.dp)
+                .size(120.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.Nama),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = stringResource(R.string.mahasiswa_sistem_informasi),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(32.dp))
 
+        // Kartu Informasi Detail (tanpa ikon)
         Card(
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                ProfileRow("Nama", stringResource(R.string.Nama))
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-                ProfileRow("NIM", stringResource(R.string.NIM))
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-                ProfileRow("TTL", stringResource(R.string.TTL))
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-                ProfileRow("Hobi", stringResource(R.string.hobi))
-                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-                ProfileRow("Peminatan", stringResource(R.string.mobile_programming))
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                ProfileInfoRow(label = "NIM", value = stringResource(R.string.NIM))
+                HorizontalDivider()
+                ProfileInfoRow(label = "TTL", value = stringResource(R.string.TTL))
+                HorizontalDivider()
+                ProfileInfoRow(label = "Hobi", value = stringResource(R.string.hobi))
+                HorizontalDivider()
+                ProfileInfoRow(label = "Peminatan", value = stringResource(R.string.mobile_programming))
             }
         }
     }
 }
 
 @Composable
-fun ProfileRow(label: String, value: String) {
+fun ProfileInfoRow(label: String, value: String) {
     Row(
-        modifier = Modifier.padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp), // Padding vertikal ditambah untuk spasi
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = label,
-            modifier = Modifier.weight(1f),
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
-        Text(
-            text = value,
-            modifier = Modifier.weight(2f),
-            fontSize = 16.sp
-        )
+        // Kolom untuk label dan value agar rapi
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }
 
-
-@Composable
-fun SettingsScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(stringResource(R.string.ini_halaman_pengaturan), style = MaterialTheme.typography.headlineSmall)
-    }
+fun formatRupiah(amount: Double): String {
+    val localeID = Locale("in", "ID")
+    val format = NumberFormat.getCurrencyInstance(localeID)
+    format.maximumFractionDigits = 0
+    return format.format(amount)
 }
 
-@Preview(showBackground = true)
-@Composable
-fun MainAppPreview() {
-    ShoppingListTheme {
-        MainApp()
-    }
-}

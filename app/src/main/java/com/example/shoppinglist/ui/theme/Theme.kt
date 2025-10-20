@@ -2,46 +2,40 @@ package com.example.shoppinglist.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = GreenToscaDark,
-    onPrimary = GreenToscaOn,
-    primaryContainer = GreenToscaDarkPrimaryContainer,
-    onPrimaryContainer = GreenToscaDarkOnPrimaryContainer,
-    secondary = GreenToscaSecondary,
-    secondaryContainer = GreenToscaDarkSecondaryContainer,
-    onSecondaryContainer = GreenToscaDarkOnSecondaryContainer,
-    background = GreenToscaDarkBackground,
-    onBackground = GreenToscaDarkOnBackground,
-    surface = GreenToscaDarkSurface,
-    onSurface = GreenToscaDarkOnSurface
+    primary = PrimaryPurpleDark,
+    onPrimary = OnPrimaryPurpleDark,
+    primaryContainer = PrimaryContainerPurpleDark,
+    onPrimaryContainer = OnPrimaryContainerPurpleDark,
+    secondary = SecondaryAquaDark,
+    background = BackgroundDark,
+    onBackground = OnBackgroundDark,
+    surface = SurfaceDark,
+    onSurface = OnSurfaceDark,
+    error = ErrorRedDark
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = GreenToscaPrimary,
-    onPrimary = GreenToscaOn,
-    primaryContainer = GreenToscaPrimaryContainer,
-    onPrimaryContainer = GreenToscaOnPrimaryContainer,
-    secondary = GreenToscaSecondary,
-    secondaryContainer = GreenToscaSecondaryContainer,
-    onSecondaryContainer = GreenToscaOnSecondaryContainer,
-    background = GreenToscaBackground,
-    onBackground = GreenToscaOnBackground,
-    surface = GreenToscaSurface,
-    onSurface = GreenToscaOnSurface
+    primary = PrimaryPurple,
+    onPrimary = OnPrimaryPurple,
+    primaryContainer = PrimaryContainerPurple,
+    onPrimaryContainer = OnPrimaryContainerPurple,
+    secondary = SecondaryAqua,
+    onSecondary = OnSecondaryAqua,
+    background = BackgroundLight,
+    onBackground = OnBackgroundLight,
+    surface = SurfaceLight,
+    onSurface = OnSurfaceLight,
+    error = ErrorRed
 )
 
 @Composable
 fun ShoppingListTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -50,7 +44,6 @@ fun ShoppingListTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
@@ -61,3 +54,4 @@ fun ShoppingListTheme(
         content = content
     )
 }
+

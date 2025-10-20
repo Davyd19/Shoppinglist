@@ -16,13 +16,13 @@ import com.example.shoppinglist.R
 import com.example.shoppinglist.ui.theme.ShoppingListTheme
 
 @Composable
-fun SearchInput(query: String, onQueryChange: (String) -> Unit) {
+fun SearchInput(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
         label = { Text(stringResource(R.string.search_items)) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(50), // Membuatnya lebih bulat
         leadingIcon = {
             Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
         }

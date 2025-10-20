@@ -6,6 +6,16 @@
     <string name="TTL">Bandung, 19 Juni 2005</string>
     <string name="NIM">2311522014</string>
     <string name="Nama">Davyd Yehuda</string>
-    <string name="ini_halaman_pengaturan">Ini halaman Pengaturan</string>
     <string name="foto_profil">Foto Profil</string>
+    <string name="item_detail_title">Detail Item</string>
+    <string name="detail_for_item">Anda sedang melihat detail untuk:</string>
+    <string name="item_added_snackbar">Item \'%1$s\' berhasil ditambahkan!</string>
+    <string name="back_button">Kembali</string>
+    <string name="mahasiswa_sistem_informasi">Mahasiswa Sistem Informasi</string>
+    <string name="tambah_item_baru">Tambah Item Baru</string>
+    <string name="batal">Batal</string>
+    <string name="tambah">Tambah</string>
+    <string name="nama_barang">Nama Barang</string>
+    <string name="tambah_item">Tambah Item</string>
 </resources>
+
